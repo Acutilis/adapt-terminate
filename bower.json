@@ -1,0 +1,16 @@
+{
+    "name": "adapt-terminate",
+    "version": "1.0.0",
+    "framework": "^2.0.16",
+    "displayName": "Terminate",
+    "extension": "terminate",
+    "targetAttribute": "_terminate",
+    "description": "An extension to add a Terminate button to properly terminate a xAPI session in adapt-tkhub-xAPI",
+    "main": "/js/adapt-terminate.js",
+    "keywords": [
+        "adapt-plugin",
+        "adapt-extension"
+    ],
+    "license": "GPL-3.0",
+    "homepage": "https://github.com/Acutilis/adapt-terminate"
+}
