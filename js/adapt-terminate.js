@@ -3,6 +3,7 @@ define([ "coreJS/adapt" ], function(Adapt) {
 var TerminateView = Backbone.View.extend({
 
     initialize: function() {
+        _.bindAll(this, 'onComposeTerminateXapiMessage','onTerminateConfirm');
         this.listenTo(Adapt, {
             "navigation:terminateClick": this.onTerminateClick,
             "terminate:confirm": this.onTerminateConfirm
@@ -14,7 +15,6 @@ var TerminateView = Backbone.View.extend({
         data._globals = Adapt.course.get("_globals");
 
         var template = Handlebars.templates.terminate;
-
         this.setElement(template(data)).$el.prependTo($(".navigation-inner"));
     },
 
@@ -39,38 +39,45 @@ var TerminateView = Backbone.View.extend({
     },
 
     onTerminateConfirm: function() {
-        Adapt.trigger('navigation:terminate');
-        // this is the only place that I know that 'terminate' was issued
-        // should disable the whole site (gray transparent overlay on top of everything) AND 
-        // start a timer... after a second or so, navigate... this is because the architecture is shaky
-        // the overlay and its style are part of this extension...
-        console.log('JUST TRIGGERED terminate...');
-    }
+        Adapt.trigger('navigation:terminate', Adapt.course);
+        var config = Adapt.course.get("_terminate");
+        var returnURL;
+        if (this.xapiChannel._LaunchData) {
+          returnURL = this.xapiChannel._LaunchData['returnURL'];
+        } else {
+            returnURL = config['fallbackReturnURL'];
+        }
+        setInterval(function(){ window.location.href = returnURL; }, 750);
+        Adapt.trigger("notify:prompt", {
+            title: 'Terminating...',
+            body: 'Please wait while course terminates...',
+            _prompts: [
+            ]
+        });
+    },
 
     onComposeTerminateXapiMessage(statement, args) {
-        alert('COMPOSING message for TERMINATE');
-        // visited page
         statement.verb = ADL.verbs.terminated;
-        var activityId = this.xapiChannel._LaunchData['activityId'];
-        if (! activityId) {
+        var activityId;
+        if (this.xapiChannel._LaunchData) {
+          activityId = this.xapiChannel._LaunchData['activityId'];
+        } else {
             activityId = Adapt.trackingHub._config._courseID;
         }
-        statement.object = new ADL.XAPIStatement.Activity(activityID);
+        statement.object = new ADL.XAPIStatement.Activity(activityId);
         var objKey = Adapt.trackingHub.getElementKey(args);
-        var ATB = this.xapiChannel._handler.msgComposer._ATB;
+        var ATB = this.xapiChannel._handler._COMPOSER._ATB;
         var t = args.get('_type');
-        statement.object.definition = {type: ATB + t, name: { 'en-US': objKey }};
+        statement.object.definition = {type: ATB + t, name: { 'en-US': 'course' }};
     },
 
 });
 
 function onBeforeUnload(config) {
-    // HERE just send terminate
     Adapt.trigger('navigation:terminate');
 }
 
 Adapt.once("adapt:initialize", function() {
-    // here, add customeEventListener to trackinghub
     var config = Adapt.course.get("_terminate");
 
     if (!config || !config._isEnabled) return;
@@ -91,7 +98,7 @@ Adapt.once("adapt:initialize", function() {
         }, this);
 
         // tell the xAPI channel to use our custom composing function
-        termView.xapiChannel._handler.msgComposer.addCustomComposingFunction('Adapt', 'navigation:terminate', termView.onComposeTerminateXapiMessage)
+        termView.xapiChannel._handler._COMPOSER.addCustomComposingFunction('Adapt', 'navigation:terminate', termView.onComposeTerminateXapiMessage)
 
 
     }
