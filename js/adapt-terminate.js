@@ -88,8 +88,7 @@ Adapt.once("adapt:initialize", function() {
         var termView = new TerminateView({ model: new Backbone.Model(button) });
 
         // tell trackingHub to listen to our event
-        Adapt.trackingHub.addCustomEventListener('Adapt', 'navigation:terminate');
- 
+        Adapt.trackingHub.addCustomEventListener(Adapt, 'Adapt', 'navigation:terminate');
         // find the xAPI channels and add our composing function to them
         _.each(Adapt.trackingHub._channels, function(channel) {
             if (channel._handler._CHID == 'xapiChannelHandler') {
