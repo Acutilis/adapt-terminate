@@ -8,7 +8,7 @@
             "body": "Are you sure you want to terminate this unit and go back?",
             "confirm": "Yes, terminate and go back",
             "cancel": "Cancel"
-        },
+        }
     },
     "fallbackReturnURL": "http://www.google.com",
     "browserPrompt": "",
